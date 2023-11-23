@@ -1,4 +1,8 @@
-  data "aws_region" "current" {}
+provider "aws" {
+  region                      = "us-east-1"
+}
+
+data "aws_region" "current" {}
 
 resource "aws_sns_topic" "order-processor" {
   name = "order-processor"
@@ -48,6 +52,35 @@ resource "aws_iam_role" "sns_publish_role" {
         "Service": "sns.amazonaws.com"
       },
       "Action": "sts:AssumeRole"
+    }
+  ]
+}
+EOF
+}
+
+# Allow SNS to publish to SQS
+resource "aws_sns_topic_policy" "sns_to_sqs_policy" {
+  arn = aws_sns_topic.order-processor.arn
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Id": "MySNSTopicPolicy",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "SNS:Publish",
+      "Resource": "${aws_sns_topic.order-processor.arn}",
+      "Condition": {
+        "ArnEquals": {
+          "aws:SourceArn": [
+            "${aws_sqs_queue.order-created.arn}",
+            "${aws_sqs_queue.order-payment.arn}",
+            "${aws_sqs_queue.order-finished.arn}"
+          ]
+        }
+      }
     }
   ]
 }

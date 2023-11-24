@@ -7,6 +7,7 @@
 
 # .tfvars files that are executed automatically
 *.auto.tfvars
+*.lock
 
 # Crash log files
 crash.log

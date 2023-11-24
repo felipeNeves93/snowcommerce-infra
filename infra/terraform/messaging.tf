@@ -38,6 +38,7 @@ resource "aws_sqs_queue" "order-finished" {
   sqs_managed_sse_enabled = true
 }
 
+######### ROLES AND POLICIES ######
  #Create IAM Role for SNS to publish to SQS
 resource "aws_iam_role" "sns_publish_role" {
   name = "sns_publish_role"
@@ -65,7 +66,7 @@ resource "aws_sns_topic_policy" "sns_to_sqs_policy" {
   policy = <<EOF
 {
   "Version": "2012-10-17",
-  "Id": "MySNSTopicPolicy",
+  "Id": "OrderProcessorTopicPolicy",
   "Statement": [
     {
       "Effect": "Allow",
@@ -87,12 +88,45 @@ resource "aws_sns_topic_policy" "sns_to_sqs_policy" {
 EOF
 }
 
+# Policies to work with sqs
+resource "aws_iam_policy" "sqs_policy" {
+  name        = "sqs_policy"
+  description = "Policy for subscribing, reading, and posting to all SQS queues"
+  policy = file("${path.module}/policies/sqs_policy.json")
+}
+
+resource "aws_iam_role" "sqs_role" {
+  name = "sqs_role"
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+EOF
+}
+
+
 # Attach policy to allow SNS to publish to SQS to the IAM Role
 resource "aws_iam_role_policy_attachment" "sns_publish_policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole"
   role       = aws_iam_role.sns_publish_role.name
 }
 
+# SQS ROLE ATTACHMENT
+resource "aws_iam_role_policy_attachment" "attach_sqs_policy" {
+  role       = aws_iam_role.sqs_role.name
+  policy_arn = aws_iam_policy.sqs_policy.arn
+}
+
+######################### END OF ROLES AND POLICIES ###################
 
 resource "aws_sns_topic_subscription" "orderCreatedSubscription" {
   topic_arn = aws_sns_topic.order-processor.arn
@@ -103,6 +137,7 @@ resource "aws_sns_topic_subscription" "orderCreatedSubscription" {
     eventType = ["ORDER_CREATED"]
   })
 }
+
 
 resource "aws_sns_topic_subscription" "orderPaymentSubscription" {
   topic_arn = aws_sns_topic.order-processor.arn

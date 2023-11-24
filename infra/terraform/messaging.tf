@@ -1,5 +1,5 @@
 provider "aws" {
-  region                      = "us-east-1"
+  region = "us-east-1"
 }
 
 data "aws_region" "current" {}
@@ -89,7 +89,7 @@ EOF
 
 # Attach policy to allow SNS to publish to SQS to the IAM Role
 resource "aws_iam_role_policy_attachment" "sns_publish_policy" {
-  policy_arn = "arn:aws:iam::aws:policy/AWSLambdaSQSQueueExecutionRole"
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole"
   role       = aws_iam_role.sns_publish_role.name
 }
 

@@ -4,6 +4,7 @@
 # .tfstate files
 *.tfstate
 *.tfstate.*
+terraform.tfstate
 
 # .tfvars files that are executed automatically
 *.auto.tfvars

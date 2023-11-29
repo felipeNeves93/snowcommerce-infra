@@ -4,16 +4,11 @@
     {
       "Effect": "Allow",
       "Action": [
-        "sqs:SendMessage",
         "sqs:ReceiveMessage",
         "sqs:DeleteMessage",
-        "sqs:GetQueueAttributes"
+        "sqs:GetQueueAttributes",
+        "sqs:SetQueueAttributes"
       ],
-      "Resource": "*"
-    },
-    {
-      "Effect": "Allow",
-      "Action": "sqs:ListQueues",
       "Resource": "*"
     }
   ]
